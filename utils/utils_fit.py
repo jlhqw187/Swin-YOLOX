@@ -2,7 +2,8 @@ import torch
 from tqdm import tqdm
 from utils.utils import get_lr
 
-def fit_one_epoch(model_train, model, yolo_loss, loss_history, optimizer, epoch, epoch_step, epoch_step_val, gen, gen_val, Epoch, cuda):
+
+def fit_one_epoch(model_train, model, yolo_loss, loss_history, optimizer, epoch, epoch_step, epoch_step_val, gen, gen_val, Epoch, cuda, writer):
     loss        = 0
     val_loss    = 0
 
@@ -41,8 +42,10 @@ def fit_one_epoch(model_train, model, yolo_loss, loss_history, optimizer, epoch,
             loss_value.backward()
             optimizer.step()
 
+            writer.add_scalar("Train_loss", loss_value, (epoch*epoch_step + iteration))
+
             loss += loss_value.item()
-            
+
             pbar.set_postfix(**{'loss'  : loss / (iteration + 1), 
                                 'lr'    : get_lr(optimizer)})
             pbar.update(1)
@@ -77,9 +80,12 @@ def fit_one_epoch(model_train, model, yolo_loss, loss_history, optimizer, epoch,
                 #----------------------#
                 loss_value = yolo_loss(outputs, targets)
 
+
             val_loss += loss_value.item()
             pbar.set_postfix(**{'val_loss': val_loss / (iteration + 1)})
             pbar.update(1)
+        # writer.add_scalar("Val_loss", loss_value, (epoch * epoch_step_val + iteration))
+
 
     print('Finish Validation')
     
